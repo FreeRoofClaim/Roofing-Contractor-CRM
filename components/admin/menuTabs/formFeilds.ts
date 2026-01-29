@@ -1,0 +1,51 @@
+export const addLeadFields = [
+    {
+      name: "firstName",
+      label: "First Name",
+      type: "text",
+      placeholder: "John",
+      required: true,
+    },
+    {
+      name: "lastName",
+      label: "Last Name",
+      type: "text",
+      placeholder: "Doe",
+      required: true,
+    },
+    {
+      name: "phoneno",
+      label: "Phone Number",
+      type: "tel",
+      placeholder: "(555) 123-4567",
+      required: true,
+    },
+    {
+      name: "email",
+      label: "Email Address",
+      type: "email",
+      placeholder: "john@example.com",
+      required: true,
+    },
+    {
+      name: "propertyAddress",
+      label: "Address",
+      type: "text",
+      placeholder: "Start typing your business address...",
+      required: true,
+    },
+    {
+      name: "company",
+      label: "Insurance Company",
+      type: "text",
+      placeholder: "ABC Insurance",
+      required: true,
+    },
+    {
+      name: "policy",
+      label: "Policy Number",
+      type: "text",
+      placeholder: "POL123456789",
+      required: true,
+    },
+  ];

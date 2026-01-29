@@ -1,0 +1,399 @@
+import { FileText, Users, DollarSign, Settings, BarChart3, Calendar } from "lucide-react";
+import { supabase } from "@/lib/supabase";
+import { toast } from "react-toastify";
+import { ContractorType } from "@/types/AdminTypes";
+
+export const sidebarItems = [
+  { id: "dashboard", label: "Dashboard", icon: BarChart3, path: "/admin/dashboard" },
+  { id: "leads", label: "Leads", icon: FileText, path: "/admin/leads" },
+  { id: "contractors", label: "Contractors", icon: Users, path: "/admin/contractors", },
+  { id: "leads-request", label: "Lead Request", icon: FileText, path: "/admin/leads-request", },
+  { id: "appointments", label: "Appointments Request", icon: Calendar, path: "/admin/appointments-request", },
+  { id: "settings", label: "Settings", icon: Settings, path: "/admin/settings", },
+];
+
+export const fetchContractors = async () => {
+  try {
+    const { data, error } = await supabase
+      .from("Roofing_Auth")
+      .select(
+        `"Full Name", "Title", "Phone Number", "Email Address", "Business Address", "Service Radius", "Latitude", "Longitude", user_id`
+      )
+      .in("Is Verified", ["confirmed", "assigned"])
+      .order("created_at", { ascending: false });
+
+    if (error) throw error;
+
+    const mappedData: ContractorType[] =
+      data?.map((item: any) => ({
+        user_id: item.user_id,
+        fullName: item["Full Name"] || "",
+        title: item["Title"] || "",
+        phoneno: item["Phone Number"] || "",
+        email: item["Email Address"] || "",
+        businessAddress: item["Business Address"] || "",
+        serviceRadius: item["Service Radius"] || "",
+        latitude: item["Latitude"] || null,
+        longitude: item["Longitude"] || null,
+      })) || [];
+
+    return mappedData;
+  } catch (err: any) {
+    console.error("Error fetching contractors:", err);
+    toast.error("Failed to load contractors");
+  }
+};
+
+export const fetchLeads = async () => {
+
+  const { data, error } = await supabase
+    .from("Leads_Data")
+    .select("*")
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error("Error fetching leads:", error);
+  } else {
+    return data || [];
+  }
+};
+
+export const fetchRequestLeads = async () => {
+  try {
+    const { data, error } = await supabase
+      .from("Leads_Request")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      throw error;
+    } else {
+      return data || [];
+    }
+  } catch (error) {
+    toast.error("Failed to fetch request leads");
+  }
+};
+
+export const fetchRequestAppointments = async () => {
+  try {
+    const { data: appointments, error: appointmentsError } = await supabase
+      .from("Appointments_Request")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    if (appointmentsError) {
+      console.error("Error fetching appointment requests:", appointmentsError);
+      toast.error("Failed to fetch appointment requests");
+      return [];
+    }
+
+    if (!appointments || appointments.length === 0) {
+      return [];
+    }
+
+    const allContractorIds = appointments
+      .map((apt: any) => apt.Contractor_Id)
+      .filter(Boolean);
+    const contractorIds = allContractorIds.filter(
+      (id: any, index: number) => allContractorIds.indexOf(id) === index
+    );
+
+    if (contractorIds.length === 0) {
+      return appointments.map((appointment: any) => ({
+        ...appointment,
+        Name: "",
+        "Phone Number": "",
+        "Business Address": "",
+        "Email Address": "",
+        Date: appointment.Date || "",
+        Time: appointment.Time || "",
+        name: "",
+        phone: "",
+        email: "",
+        address: "",
+        price: appointment.Price || 0,
+        status: appointment.Status || "Pending",
+      }));
+    }
+
+    const { data: contractors, error: contractorsError } = await supabase
+      .from("Roofing_Auth")
+      .select('user_id, "Full Name", "Phone Number", "Email Address", "Business Address", "Email Address"')
+      .in("user_id", contractorIds);
+
+    if (contractorsError) {
+      console.error("Error fetching contractors:", contractorsError);
+    }
+
+    const contractorMap = new Map(
+      (contractors || []).map((contractor: any) => [contractor.user_id, contractor])
+    );
+
+    const mappedData = appointments.map((appointment: any) => {
+      const contractor = contractorMap.get(appointment.Contractor_Id);
+      return {
+        ...appointment,
+        Name: contractor?.["Full Name"] || "",
+        "Phone Number": contractor?.["Phone Number"] || "",
+        "Business Address": contractor?.["Business Address"] || "",
+        "Email Address": contractor?.["Email Address"] || "",
+        Date: appointment.Date || "",
+        Time: appointment.Time || "",
+        name: contractor?.["Full Name"] || "",
+        phone: contractor?.["Phone Number"] || "",
+        email: contractor?.["Email Address"] || "",
+        address: contractor?.["Business Address"] || "",
+        price: appointment.Price || 0,
+        status: appointment.Status || "Pending",
+      };
+    });
+
+    return mappedData;
+  } catch (error) {
+    console.error("Error fetching appointment requests:", error);
+    toast.error("Failed to fetch appointment requests");
+    return [];
+  }
+};
+// Leads Data
+
+export const allLeads = [
+  {
+    id: 1,
+    firstName: "John",
+    lastName: "Doe",
+    phoneno: "(555) 123-5787",
+    email: "john.doe@example.com",
+    zipCode: "75201",
+    address: "Main St, Houston, TX",
+    assignedDate: "2024-01-15",
+    company: "ABC Inc",
+    policy: "1234567890",
+    assignedTo: null,
+    purchaseDate: "2024-01-15",
+  },
+  {
+    id: 2,
+    zipCode: "75202",
+    firstName: "Jane",
+    lastName: "Smith",
+    phoneno: "(555) 987-5787",
+    email: "jane.doe@example.com",
+    address: "Main St, Dallas, TX",
+    assignedDate: "2024-01-14",
+    company: "ABC Inc",
+    policy: "1234567890",
+    assignedTo: "Mike Rodriguez",
+    purchaseDate: "2024-01-14",
+  },
+  {
+    id: 3,
+    zipCode: "75203",
+    firstName: "Jim",
+    lastName: "Beam",
+    phoneno: "(555) 789-5787",
+    email: "jim.beam@example.com",
+    address: "Main St, Austin, TX",
+    assignedDate: "2024-01-13",
+    company: "XYZ Corp",
+    policy: "1234567890",
+    assignedTo: "Jennifer Martinez",
+    purchaseDate: "2024-01-13",
+  },
+  {
+    id: 4,
+    zipCode: "75204",
+    firstName: "Sarah",
+    lastName: "Johnson",
+    phoneno: "(555) 456-5787",
+    email: "sarah.johnson@example.com",
+    address: "Main St, San Antonio, TX",
+    assignedDate: "2024-01-12",
+    company: "DEF Ltd",
+    policy: "0987654321",
+    assignedTo: "Robert Wilson",
+    purchaseDate: "2024-01-12",
+  },
+  {
+    id: 5,
+    zipCode: "75205",
+    firstName: "Mike",
+    lastName: "Wilson",
+    phoneno: "(555) 555-5787",
+    email: "mike.wilson@example.com",
+    address: "Main St, San Antonio, TX",
+    assignedDate: "2024-01-11",
+    company: "GHI Inc",
+    policy: "5555555555",
+    assignedTo: null,
+    purchaseDate: "2024-01-11",
+  },
+];
+
+// contractors Data
+export const contractors = [
+  {
+    id: "01",
+    fullName: "Mike Rodriguez",
+    title: "manager",
+    phoneno: "1234567890",
+    email: "mike.rodriguez@example.com",
+    businessAddress: "123 Main St, Houston, TX",
+    serviceRadius: "100 miles",
+  },
+  {
+    id: "02",
+    fullName: "Jennifer Martinez",
+    title: "manager",
+    phoneno: "1234567890",
+    email: "jennifer.martinez@example.com",
+    businessAddress: "123 Main St, Dallas, TX",
+    serviceRadius: "26 miles",
+  },
+  {
+    id: "03",
+    fullName: "Robert Wilson",
+    title: "Contractor",
+    phoneno: "1234567890",
+    email: "robert.wilson@example.com",
+    businessAddress: "123 Main St, Austin, TX",
+    serviceRadius: "90 miles",
+  },
+];
+
+// adminStats Data
+export const dashboardCard = [
+  {
+    title: "Total Leads",
+    value: "2,847",
+    icon: FileText,
+  },
+  {
+    title: "Active Contractors",
+    value: "156",
+    icon: Users,
+  },
+  {
+    time: "Last Month",
+    title: "Total Sales",
+    value: "$284,750",
+    icon: DollarSign,
+  },
+];
+
+export const requestLeads = [
+  {
+    id: "01",
+    firstName: "John",
+    lastName: "Smith",
+    phoneno: "(214) 555-0123",
+    noOfLeads: 10,
+    price: 100,
+    date: "2024-01-15",
+    assignedDate: "2024-01-15",
+    receivedLeads: 5,
+    pendingLeads: 5,
+    zipCode: "75201",
+    status: "Pending",
+  },
+  {
+    id: "02",
+    firstName: "Sarah",
+    lastName: "Johnson",
+    phoneno: "(214) 555-0456",
+    noOfLeads: 6,
+    price: 100,
+    date: "2024-01-14",
+    assignedDate: "2024-01-14",
+    receivedLeads: "6",
+    pendingLeads: "-",
+    zipCode: "75202",
+    status: "Assign",
+  },
+  {
+    id: "03",
+    firstName: "Michael",
+    lastName: "Davis",
+    phoneno: "(214) 555-0789",
+    noOfLeads: 7,
+    price: 100,
+    date: "2024-01-13",
+    assignedDate: "2024-01-13",
+    receivedLeads: "7",
+    pendingLeads: "-",
+    zipCode: "75203",
+    status: "Assign",
+  },
+  {
+    id: "04",
+    firstName: "Jennifer",
+    lastName: "Wilson",
+    phoneno: "(214) 555-0321",
+    noOfLeads: 4,
+    price: 100,
+    date: "2024-01-12",
+    assignedDate: "2024-01-12",
+    receivedLeads: 2,
+    pendingLeads: 2,
+    zipCode: "75204",
+    status: "Pending",
+  },
+  {
+    id: "05",
+    firstName: "David",
+    lastName: "Chen",
+    phoneno: "(214) 555-0123",
+    noOfLeads: 10,
+    price: 100,
+    date: "2024-01-11",
+    assignedDate: "2024-01-11",
+    receivedLeads: "10",
+    pendingLeads: "-",
+    zipCode: "75205",
+    status: "Assign",
+  },
+];
+
+export const pricingTiers = [
+  {
+    id: "basic",
+    name: "Basic Leads",
+    description: "Standard quality leads for new contractors",
+    price: 45,
+    features: ["Basic verification", "Email support", "48hr delivery"],
+    color: "from-blue-500 to-blue-600",
+    bgColor: "from-blue-50 to-blue-100",
+    popular: false,
+  },
+  {
+    id: "premium",
+    name: "Premium Leads",
+    description: "High-quality verified leads with insurance approval",
+    price: 89,
+    features: [
+      "Insurance verified",
+      "Priority support",
+      "24hr delivery",
+      "Damage photos",
+    ],
+    color: "from-purple-500 to-purple-600",
+    bgColor: "from-purple-50 to-purple-100",
+    popular: true,
+  },
+  {
+    id: "exclusive",
+    name: "Exclusive Leads",
+    description: "Premium leads shared with maximum 2 contractors",
+    price: 149,
+    features: [
+      "Exclusive access",
+      "Dedicated manager",
+      "Instant delivery",
+      "Full documentation",
+    ],
+    color: "from-green-500 to-green-600",
+    bgColor: "from-green-50 to-green-100",
+    popular: false,
+  },
+];
