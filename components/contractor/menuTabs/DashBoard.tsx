@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useRef } from "react";
-import { Home, FileText, DollarSign, BarChart3, Users, User, CheckCircle, Phone, Mail, MapPin, Hash, Building, Search, } from "lucide-react";
+import { Home, FileText, DollarSign, BarChart3, Users, User, CheckCircle, Phone, Mail, MapPin, Hash, Building, Search, Plus } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { DetailPopup } from "@/components/ui/DetailPopup";
@@ -27,7 +27,7 @@ export const DashBoard = () => {
   const [pricePerLead, setPricePerLead] = useState<number>(0);
   const hasRun = useRef(false);
   const router = useRouter();
-    const handleCloseModal = () => {
+  const handleCloseModal = () => {
     setIsLeadModalOpen(false);
     setSelectedLead(null);
   };
@@ -44,39 +44,39 @@ export const DashBoard = () => {
 
   const leadFields = selectedLead
     ? [
-        {
-          label: "Full Name",
-          value: `${selectedLead["First Name"]} ${selectedLead["Last Name"]}`,
-          icon: User,
-        },
-        {
-          label: "Phone",
-          value: selectedLead["Phone Number"],
-          icon: Phone,
-        },
-        {
-          label: "Email",
-          value: selectedLead["Email Address"],
-          icon: Mail,
-          breakAll: true,
-        },
-        {
-          label: "Property Address",
-          value: selectedLead["Property Address"],
-          icon: MapPin,
-        },
-        {
-          label: "Insurance Company",
-          value: selectedLead["Insurance Company"],
-          icon: Building,
-          whitespaceNowrap: true,
-        },
-        {
-          label: "Policy Number",
-          value: selectedLead["Policy Number"],
-          icon: Hash,
-        },
-      ]
+      {
+        label: "Full Name",
+        value: `${selectedLead["First Name"]} ${selectedLead["Last Name"]}`,
+        icon: User,
+      },
+      {
+        label: "Phone",
+        value: selectedLead["Phone Number"],
+        icon: Phone,
+      },
+      {
+        label: "Email",
+        value: selectedLead["Email Address"],
+        icon: Mail,
+        breakAll: true,
+      },
+      {
+        label: "Property Address",
+        value: selectedLead["Property Address"],
+        icon: MapPin,
+      },
+      {
+        label: "Insurance Company",
+        value: selectedLead["Insurance Company"],
+        icon: Building,
+        whitespaceNowrap: true,
+      },
+      {
+        label: "Policy Number",
+        value: selectedLead["Policy Number"],
+        icon: Hash,
+      },
+    ]
     : [];
 
   const fetchContractorLeadsData = async () => {
@@ -109,12 +109,12 @@ export const DashBoard = () => {
       const { data: authData } = await supabase.auth.getUser();
       const userId = authData?.user?.id;
       const email = authData?.user?.email;
-  
+
       if (!userId || !email) {
         toast.error("User not logged in");
         return;
       }
-  
+
       const response = await fetch("/api/create-single-checkout-session", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -126,7 +126,7 @@ export const DashBoard = () => {
           lead_id: lead.id,
         }),
       });
-  
+
       const { url } = await response.json();
       window.location.href = url;
     } catch (error) {
@@ -148,13 +148,13 @@ export const DashBoard = () => {
       const userId = authData?.user?.id;
       if (!userId) return;
       console.log("userId", userId);
-  
+
       const { data: userRecord } = await supabase
         .from("Roofing_Auth")
         .select('"Is Verified"')
         .eq("user_id", userId)
         .single();
-  
+
       if (userRecord?.["Is Verified"] === "confirmed") {
         console.log("userRecord", userRecord["Is Verified"]);
         console.log("✅ User is verified, auto assigning leads...");
@@ -197,7 +197,16 @@ export const DashBoard = () => {
 
       {/* Stats cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
-        <Card onClick={()=>{router.push('/contractor/leads')}} className="border-0 cursor-pointer shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 bg-gradient-to-br from-blue-50 to-white">
+
+        <Button
+          onClick={() => router.push("/contractor/purchase-leads")}
+          className="bg-blue-500 hover:bg-[#0f2347]/80 text-white md:hidden"
+        >
+          <Plus className="h-4 w-4 mr-2" />
+          <span>Purchase Leads</span>
+        </Button>
+
+        <Card onClick={() => { router.push('/contractor/leads') }} className="border-0 cursor-pointer shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 bg-gradient-to-br from-blue-50 to-white">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
             <CardTitle className="text-sm font-semibold text-[#286BBD]">
               Total Leads
@@ -217,7 +226,7 @@ export const DashBoard = () => {
           </CardContent>
         </Card>
 
-        <Card onClick={()=>{router.push('/contractor/leads')}} className="border-0 cursor-pointer shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 bg-gradient-to-br from-green-50 to-white">
+        <Card onClick={() => { router.push('/contractor/leads') }} className="border-0 cursor-pointer shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 bg-gradient-to-br from-green-50 to-white">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
             <CardTitle className="text-sm font-semibold text-[#286BBD]">
               Active Leads
@@ -237,7 +246,7 @@ export const DashBoard = () => {
           </CardContent>
         </Card>
 
-        <Card onClick={()=>{router.push('/contractor/crm')}} className="border-0 cursor-pointer shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 bg-gradient-to-br from-red-50 to-white">
+        <Card onClick={() => { router.push('/contractor/crm') }} className="border-0 cursor-pointer shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 bg-gradient-to-br from-red-50 to-white">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
             <CardTitle className="text-sm font-semibold text-[#286BBD]">
               Closed Leads
@@ -291,7 +300,7 @@ export const DashBoard = () => {
                   </div>
                 </div>
               ) : contractorLeads.filter((lead) => lead.status !== "close")
-                  .length > 0 ? (
+                .length > 0 ? (
                 contractorLeads
                   .filter((lead) => lead.status !== "close")
                   .slice(0, 3)
@@ -302,25 +311,25 @@ export const DashBoard = () => {
                       className="flex flex-col lg:flex-row items-center justify-center md:justify-between p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition-all duration-200"
                     >
                       <div className="w-full md:w-1/2">
-                      <div className="text-sm flex items-center font-semibold text-gray-900 transition-colors">
-                        <User className="h-4 w-4 mr-1" />
-                        <h4 className="font-semibold text-gray-900 text-base">
-                          {lead["First Name"]} {lead["Last Name"]}
-                        </h4>
-                      </div>
-                      <div className="mt-1 flex items-center text-sm text-gray-600 transition-colors">
-                        <div className="flex items-center space-x-1">
-                          <MapPin className="h-4 w-4" />
-                          <span className="w-52 truncate">{lead["Property Address"]}</span>
+                        <div className="text-sm flex items-center font-semibold text-gray-900 transition-colors">
+                          <User className="h-4 w-4 mr-1" />
+                          <h4 className="font-semibold text-gray-900 text-base">
+                            {lead["First Name"]} {lead["Last Name"]}
+                          </h4>
+                        </div>
+                        <div className="mt-1 flex items-center text-sm text-gray-600 transition-colors">
+                          <div className="flex items-center space-x-1">
+                            <MapPin className="h-4 w-4" />
+                            <span className="w-52 truncate">{lead["Property Address"]}</span>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                    <div className="flex w-full md:w-auto flex-col mt-2 space-y-2">
-                      <div className="text-sm text-[#286BBD] flex md:justify-end hover:text-[#1d4ed8] transition-colors">
-                        <Phone className="h-4 w-4 mr-1" />
-                        <span className="font-medium">{lead["Phone Number"]}</span>
+                      <div className="flex w-full md:w-auto flex-col mt-2 space-y-2">
+                        <div className="text-sm text-[#286BBD] flex md:justify-end hover:text-[#1d4ed8] transition-colors">
+                          <Phone className="h-4 w-4 mr-1" />
+                          <span className="font-medium">{lead["Phone Number"]}</span>
+                        </div>
                       </div>
-                    </div>
                     </div>
                   ))
               ) : (
@@ -354,13 +363,13 @@ export const DashBoard = () => {
             <div className="space-y-4">
               {isLoading ? (
                 <div className="flex flex-col items-center justify-center">
-                <div className="flex flex-col items-center justify-center">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#122E5F]"></div>
-                  <p className="mt-2 text-sm text-gray-500">
-                    Loading leads...
-                  </p>
+                  <div className="flex flex-col items-center justify-center">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#122E5F]"></div>
+                    <p className="mt-2 text-sm text-gray-500">
+                      Loading leads...
+                    </p>
+                  </div>
                 </div>
-              </div>
               ) : premiumLeads.length === 0 ? (
                 <div className="text-center py-12">
                   <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -375,46 +384,46 @@ export const DashBoard = () => {
                 </div>
               ) : (
                 premiumLeads.slice(0, 3).map((lead: premiumLeadType) => (
-                <div
-                  key={lead.id}
-                  className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
-                >
-                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                    <div className="flex-1">
-                      <div className="flex items-center space-x-3 mb-2">
-                        <div className="text-sm font-bold text-gray-400 select-none">
-                          {`${lead["First Name"].slice(0, 2)}${"***"} ${lead["Last Name"].slice(0, 2)}${"***"}`}
+                  <div
+                    key={lead.id}
+                    className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
+                  >
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                      <div className="flex-1">
+                        <div className="flex items-center space-x-3 mb-2">
+                          <div className="text-sm font-bold text-gray-400 select-none">
+                            {`${lead["First Name"].slice(0, 2)}${"***"} ${lead["Last Name"].slice(0, 2)}${"***"}`}
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-4 text-xs text-gray-500">
+                          <div className="flex items-center">
+                            <MapPin className="h-3 w-3 mr-1" />
+                            <span className="select-none">{`${lead["Property Address"].slice(0, 2)}${"***"}`}</span>
+                          </div>
+                          <div className="flex items-center">
+                            <Phone className="h-3 w-3 mr-1" />
+                            <span className="select-none">{`${lead["Phone Number"].slice(0, 2)}${"***"}`}</span>
+                          </div>
+                          <div className="flex items-center">
+                            <Mail className="h-3 w-3 mr-1" />
+                            <span className="select-none">{`${lead["Email Address"].slice(0, 2)}${"***"}`}</span>
+                          </div>
                         </div>
                       </div>
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-4 text-xs text-gray-500">
-                        <div className="flex items-center">
-                          <MapPin className="h-3 w-3 mr-1" />
-                          <span className="select-none">{`${lead["Property Address"].slice(0,2)}${"***"}`}</span>
-                        </div>
-                        <div className="flex items-center">
-                          <Phone className="h-3 w-3 mr-1" />
-                          <span className="select-none">{`${lead["Phone Number"].slice(0,2)}${"***"}`}</span>
-                        </div>
-                        <div className="flex items-center">
-                          <Mail className="h-3 w-3 mr-1" />
-                          <span className="select-none">{`${lead["Email Address"].slice(0,2)}${"***"}`}</span>
-                        </div>
+                      <div className="flex items-center justify-between md:justify-end space-x-3 md:ml-4">
+                        <Button
+                          size="sm"
+                          onClick={() => handleBuyNow(lead)}
+                          className={`text-white`}
+                          disabled={loadingLeads.has(lead.id)}
+                        >
+                          {loadingLeads.has(lead.id)
+                            ? "Processing..."
+                            : "Buy Now"}
+                        </Button>
                       </div>
-                    </div>
-                    <div className="flex items-center justify-between md:justify-end space-x-3 md:ml-4">
-                      <Button
-                        size="sm"
-                        onClick={() => handleBuyNow(lead)}
-                        className={`text-white`}
-                        disabled={loadingLeads.has(lead.id)}
-                      >
-                        {loadingLeads.has(lead.id)
-                          ? "Processing..."
-                          : "Buy Now"}
-                      </Button>
                     </div>
                   </div>
-                </div>
                 ))
               )}
               <div className="text-center pt-2">
