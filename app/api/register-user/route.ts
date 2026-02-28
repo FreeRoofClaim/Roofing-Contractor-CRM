@@ -31,6 +31,31 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: false, message: error.message });
     }
 
+    // Notify via Zapier webhook (same webhook as homeowner leads)
+    const zapierWebhook = process.env.ZAPIER_WEBHOOK_URL;
+    if (zapierWebhook) {
+      try {
+        await fetch(zapierWebhook, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            type: "contractor_signup",
+            fullName,
+            title,
+            phoneNumber,
+            email: emailAddress,
+            businessAddress,
+            serviceRadius,
+            latitude,
+            longitude,
+            isVerified,
+          }),
+        });
+      } catch (err) {
+        console.error("Zapier webhook failed:", err);
+      }
+    }
+
     return NextResponse.json({ success: true });
   } catch (err: any) {
     console.error("Server error:", err);
