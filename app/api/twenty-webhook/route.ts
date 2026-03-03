@@ -5,24 +5,36 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
 
-    const person = body.data;
-    const email = person.emails?.[0]?.email;
+    console.log("WEBHOOK:", JSON.stringify(body, null, 2));
 
-    if (!email) return NextResponse.json({ ok: true });
+    const person = body.record;
 
-    // Create Supabase user (invite)
-    const { error } = await getSupabaseAdmin().auth.admin.createUser({
-      email,
-      email_confirm: false,
-    });
+    if (!person) {
+      return NextResponse.json({ ok: true });
+    }
+
+    const email =
+      person.emails?.primaryEmail ||
+      person.emails?.additionalEmails?.[0];
+
+    if (!email) {
+      console.log("No email found");
+      return NextResponse.json({ ok: true });
+    }
+
+    console.log("Inviting:", email);
+
+    const { error } =
+      await getSupabaseAdmin().auth.admin.inviteUserByEmail(email);
 
     if (error) {
-      console.error(error);
+      console.error("Supabase error:", error);
     }
 
     return NextResponse.json({ success: true });
+
   } catch (err) {
-    console.error(err);
-    return NextResponse.json({ success: false });
+    console.error("Webhook crash:", err);
+    return NextResponse.json({ error: true });
   }
 }
