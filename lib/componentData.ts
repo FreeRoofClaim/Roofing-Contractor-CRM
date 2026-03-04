@@ -188,7 +188,7 @@ export const stats = [
       company: 'Apex Storm Restoration',
       location: 'Dallas, TX',
       rating: 4.9,
-      testimonial: "Working with Roof Claim Pros on our lead generation was a fantastic experience. Their team was professional, responsive, and delivered qualified prospects that exceeded our expectations."
+      testimonial: "Working with FreeRoofPros on our lead generation was a fantastic experience. Their team was professional, responsive, and delivered qualified prospects that exceeded our expectations."
     },
     {
       name: 'David Chen',
@@ -202,7 +202,7 @@ export const stats = [
       company: 'Premier Roofing Co',
       location: 'San Antonio, TX',
       rating: 4.8,
-      testimonial: "The quality of leads from Roof Claim Pros is unmatched. Homeowners are ready to sign contracts, not just getting quotes. My conversion rate has never been higher."
+      testimonial: "The quality of leads from FreeRoofPros is unmatched. Homeowners are ready to sign contracts, not just getting quotes. My conversion rate has never been higher."
     },
     {
       name: 'Robert Wilson',

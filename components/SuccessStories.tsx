@@ -48,7 +48,7 @@ export function SuccessStories() {
               Contractor Success
             </h2>
             <p className="text-lg text-gray-600 leading-relaxed text-justify mb-8">
-              At Roof Claim Pros we take pride in providing high-quality solutions that meet the unique needs of our contractors. But don't just take our word for it – here's what some of our satisfied contractors have to say:
+              At FreeRoofPros we take pride in providing high-quality solutions that meet the unique needs of our contractors. But don't just take our word for it – here's what some of our satisfied contractors have to say:
             </p>
           </div>
 
