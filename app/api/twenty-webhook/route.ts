@@ -25,7 +25,9 @@ export async function POST(req: Request) {
     console.log("Inviting:", email);
 
     const { error } =
-      await getSupabaseAdmin().auth.admin.inviteUserByEmail(email);
+      await getSupabaseAdmin().auth.admin.inviteUserByEmail(email, {
+        redirectTo: "https://contractor.freeroofpros.com",
+      });
 
     if (error) {
       console.error("Supabase error:", error);
