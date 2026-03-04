@@ -14,7 +14,7 @@ export function Header() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-14">
           <Link href="/" className="flex items-center space-x-3 group">
-            <div className="relative w-40 h-40 mt-2 sm:w-40 sm:h-40 flex-shrink-0 flex items-center justify-center">
+            <div className="relative w-40 h-40 my-2 sm:w-40 sm:h-40 flex-shrink-0 flex items-center justify-center">
                   <Image
                     src="/roofing-logo.png"
                     alt="Logo"

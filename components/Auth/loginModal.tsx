@@ -106,7 +106,7 @@ export default function LoginModal() {
           <div className="text-center mb-8">
             <div className="relative mb-8 flex justify-center">
               <Image 
-                src="/roofingF-logo.png" 
+                src="/roofing-logo.png" 
                 alt="Roofing CRM Logo" 
                 width={200} 
                 height={50}
