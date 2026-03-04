@@ -13,7 +13,7 @@ export default function NotFound() {
         <div className="mb-8">
           <Image
             src="/roofing-logo.png"
-            alt="RoofClaim Pro Logo"
+            alt="FreeRoofPros Logo"
             width={200}
             height={80}
             className="mx-auto object-contain"

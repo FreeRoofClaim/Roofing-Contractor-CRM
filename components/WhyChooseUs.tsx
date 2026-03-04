@@ -60,7 +60,7 @@ export function WhyChooseUs() {
             Why Choose Us
           </h2>
           <p className="text-lg text-gray-600 max-w-3xl mx-auto leading-relaxed">
-            At Roof Claim Pros, we are dedicated to providing our contractors with the best possible service and results.
+            At FreeRoofPros, we are dedicated to providing our contractors with the best possible service and results.
           </p>
         </div>
 
