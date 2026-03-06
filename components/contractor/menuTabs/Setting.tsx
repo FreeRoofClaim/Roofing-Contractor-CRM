@@ -142,9 +142,29 @@ export const Setting = () => {
   };
 
   const handleInputChange = (field: string, value: string) => {
+    let processedValue = value;
+
+    // Format phone number as user types
+    if (field === "phoneNumber") {
+      // Remove all non-digits
+      const digits = value.replace(/\D/g, "");
+
+      // Format based on length
+      if (digits.length <= 3) {
+        processedValue = digits;
+      } else if (digits.length <= 6) {
+        processedValue = `(${digits.slice(0, 3)}) ${digits.slice(3)}`;
+      } else if (digits.length <= 10) {
+        processedValue = `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
+      } else {
+        // Limit to 10 digits
+        processedValue = `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6, 10)}`;
+      }
+    }
+
     setFormData((prev) => ({
       ...prev,
-      [field]: value,
+      [field]: processedValue,
     }));
   };
 
@@ -192,6 +212,8 @@ export const Setting = () => {
                   Phone Number
                 </label>
                 <Input
+                  type="tel"
+                  placeholder="(555) 123-4567"
                   value={isProfileLoading ? "Loading..." : formData.phoneNumber}
                   onChange={(e) =>
                     handleInputChange("phoneNumber", e.target.value)
