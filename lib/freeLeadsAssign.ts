@@ -125,6 +125,8 @@ export async function freeLeadsAssign(userId: string) {
             "Latitude": lead["Latitude"],
             "Longitude": lead["Longitude"],
             status: "open",
+            lead_type: lead.lead_type || "complete",
+            lead_price: lead.lead_price || 150,
           }))
         );
       if (insertCL) {
