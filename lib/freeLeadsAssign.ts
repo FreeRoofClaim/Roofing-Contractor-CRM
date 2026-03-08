@@ -34,11 +34,13 @@ export async function freeLeadsAssign(userId: string) {
       return;
     }
 
-    // 2️⃣ Fetch open leads
+    // 2️⃣ Fetch open leads — only 'complete' type.
+    // Partial/address-only leads are not assigned to contractors.
     const { data: leads, error: leadsError } = await supabase
       .from("Leads_Data")
       .select("*")
-      .eq("Status", "open");
+      .eq("Status", "open")
+      .eq("lead_type", "complete");
 
     if (leadsError) throw leadsError;
     const openLeads = leads || [];
@@ -123,6 +125,8 @@ export async function freeLeadsAssign(userId: string) {
             "Latitude": lead["Latitude"],
             "Longitude": lead["Longitude"],
             status: "open",
+            lead_type: lead.lead_type || "complete",
+            lead_price: lead.lead_price || 150,
           }))
         );
       if (insertCL) {

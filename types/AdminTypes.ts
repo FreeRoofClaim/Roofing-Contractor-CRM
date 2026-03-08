@@ -32,6 +32,8 @@ export interface LeadType {
   "Purchase Date": string;
   "Latitude"?: number;
   "Longitude"?: number;
+  lead_type?: string;
+  lead_price?: number;
 }
 
 export interface ContractorType {

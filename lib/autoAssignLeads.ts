@@ -27,10 +27,13 @@ export async function autoAssignLeads(quantity: number) {
     const contractorPhone = contractor["Phone Number"];
     const contractorBusinessAddress = contractor["Business Address"];
 
+    // Only auto-assign 'complete' leads to contractors.
+    // Partial/address-only leads stay in admin portal only.
     const { data: leads } = await supabase
       .from("Leads_Data")
       .select('*')
-      .eq("Status", "open");
+      .eq("Status", "open")
+      .eq("lead_type", "complete");
 
     if (!leads) return;
 
@@ -101,7 +104,8 @@ export async function autoAssignLeads(quantity: number) {
         "Latitude": lead["Latitude"],
         "Longitude": lead["Longitude"],
         status: "open",
-
+        lead_type: lead.lead_type || "complete",
+        lead_price: lead.lead_price || 150,
     })));
     if (insertLeadsError) throw insertLeadsError;
 

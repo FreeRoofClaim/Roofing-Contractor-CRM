@@ -57,10 +57,14 @@ export const fetchMatchLeads = async () => {
       return;
     }
 
+    // Only show leads that are 'complete' type to contractors.
+    // Partial/address-only leads are visible in the admin portal only
+    // until the admin manually assigns them or the homeowner upgrades.
     const { data: leads } = await supabase
       .from("Leads_Data")
       .select("*")
-      .eq("Status", "open");
+      .eq("Status", "open")
+      .eq("lead_type", "complete");
 
     if (!leads) return;
 

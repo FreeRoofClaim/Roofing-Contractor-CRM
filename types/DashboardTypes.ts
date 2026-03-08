@@ -30,6 +30,8 @@ export interface purchasedLeadType {
   "Policy Number": string;
   "Purchase Date": string;
   "status": string;
+  lead_type?: string;
+  lead_price?: number;
 }
 
 export interface premiumLeadType {
@@ -40,6 +42,8 @@ export interface premiumLeadType {
   "Phone Number": string;
   "Email Address": string;
   "Price": number;
+  lead_type?: string;
+  lead_price?: number;
 }
 
 export interface purchaseFormType {
