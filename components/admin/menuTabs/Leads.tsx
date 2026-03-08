@@ -14,6 +14,7 @@ import { supabase } from "@/lib/supabase";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, } from "@/components/ui/dropdown-menu";
 import { fetchContractors, fetchLeads } from "./Data";
 import { LeadType, ContractorType } from "@/types/AdminTypes";
+import { LeadTypeBadge } from "@/components/ui/LeadTypeBadge";
 import { toast } from "react-toastify";
 import { exportToExcel } from "./exportExcel";
 import { newLeadSchema } from "@/validations/admin/schema";
@@ -23,6 +24,7 @@ import { calculateDistance } from "@/lib/distanceFormula";
 export const Leads = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
+  const [leadTypeFilter, setLeadTypeFilter] = useState("All");
   const [activeTab, setActiveTab] = useState("open");
   const [selectedLead, setSelectedLead] = useState<LeadType | null>(null);
   const [showModal, setShowModal] = useState(false);
@@ -55,7 +57,11 @@ export const Leads = () => {
       statusFilter === "All" ||
       lead["Status"].toLowerCase() === statusFilter.toLowerCase();
 
-    return matchesSearch && matchesStatus;
+    const matchesLeadType =
+      leadTypeFilter === "All" ||
+      (lead.lead_type || "complete") === leadTypeFilter;
+
+    return matchesSearch && matchesStatus && matchesLeadType;
   });
 
   const openLeads = filteredLeads.filter((lead) => {
@@ -221,6 +227,8 @@ export const Leads = () => {
           "Latitude": leadToAssign["Latitude"],
           "Longitude": leadToAssign["Longitude"],
           status: "open",
+          lead_type: leadToAssign.lead_type || "complete",
+          lead_price: leadToAssign.lead_price || 150,
         },
       ]);
 
@@ -357,7 +365,22 @@ export const Leads = () => {
   const handleFormSubmit = async (formData: Record<string, any>) => {
     setIsSubmitting(true);
     try {
-      // 1️⃣ Insert data into Leads_Data table
+      // Determine lead_type and lead_price based on filled fields
+      const hasAddress = !!formData.propertyAddress;
+      const hasContact = !!(formData.firstName || formData.lastName || formData.phoneno || formData.email);
+      const hasInsurance = !!(formData.company || formData.policy);
+
+      let lead_type = "address_only";
+      let lead_price = 30;
+      if (hasAddress && hasContact && hasInsurance) {
+        lead_type = "complete";
+        lead_price = 150;
+      } else if (hasAddress && hasContact) {
+        lead_type = "partial";
+        lead_price = 100;
+      }
+
+      // Insert data into Leads_Data table
       const { error } = await supabase.from("Leads_Data").insert([
         {
           "Property Address": formData.propertyAddress,
@@ -370,6 +393,8 @@ export const Leads = () => {
           Status: "open",
           "Latitude": formData.latitude,
           "Longitude": formData.longitude,
+          lead_type,
+          lead_price,
         },
       ]);
 
@@ -443,6 +468,20 @@ export const Leads = () => {
               </select>
               <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 text-[#286BBD] h-4 w-4 pointer-events-none" />
             </div>
+            <div className="relative">
+              <select
+                aria-label="Select lead type"
+                value={leadTypeFilter}
+                onChange={(e) => setLeadTypeFilter(e.target.value)}
+                className="appearance-none bg-white border border-[#122E5F] lg:w-auto w-full text-[#122E5F] px-4 py-2 pr-8 rounded-md focus:outline-none focus:ring-2 focus:ring-[#122E5F] focus:border-transparent min-w-[160px]"
+              >
+                <option value="All">All Types</option>
+                <option value="address_only">🚪 Door Knock ($30)</option>
+                <option value="partial">📋 Standard ($100)</option>
+                <option value="complete">⭐ Premium ($150)</option>
+              </select>
+              <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 text-[#286BBD] h-4 w-4 pointer-events-none" />
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -487,6 +526,9 @@ export const Leads = () => {
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Status
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Type
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Action
@@ -535,6 +577,9 @@ export const Leads = () => {
                             >
                               {lead["Status"]}
                             </Badge>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <LeadTypeBadge leadType={lead.lead_type} leadPrice={lead.lead_price} size="sm" />
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm font-medium flex items-center gap-2">
                             <DropdownMenu>
@@ -622,6 +667,9 @@ export const Leads = () => {
                         Status
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Type
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Action
                       </th>
                     </tr>
@@ -663,6 +711,9 @@ export const Leads = () => {
                             >
                               {lead["Status"]}
                             </Badge>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <LeadTypeBadge leadType={lead.lead_type} leadPrice={lead.lead_price} size="sm" />
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm font-medium flex items-center gap-2">
                             <Button
@@ -744,6 +795,9 @@ export const Leads = () => {
               </div>
 
               {/* Contractor Information */}
+              <div className="mb-3">
+                <LeadTypeBadge leadType={selectedLead.lead_type} leadPrice={selectedLead.lead_price} size="md" />
+              </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-1">
@@ -751,7 +805,7 @@ export const Leads = () => {
                   </label>
                   <p className="text-gray-900 bg-gray-50 p-1.5 rounded-md text-sm flex items-center">
                     <User className="h-3 w-3 mr-1 text-gray-400" />
-                    {selectedLead["First Name"]}
+                    {selectedLead["First Name"] || <span className="text-gray-400 italic">Not captured</span>}
                   </p>
                 </div>
                 <div>
@@ -760,7 +814,7 @@ export const Leads = () => {
                   </label>
                   <p className="text-gray-900 bg-gray-50 p-1.5 rounded-md text-sm flex items-center">
                     <User className="h-3 w-3 mr-1 text-gray-400" />
-                    {selectedLead["Last Name"]}
+                    {selectedLead["Last Name"] || <span className="text-gray-400 italic">Not captured</span>}
                   </p>
                 </div>
 
@@ -770,7 +824,7 @@ export const Leads = () => {
                   </label>
                   <p className="text-gray-900 bg-gray-50 p-1.5 rounded-md text-sm flex items-center">
                     <Phone className="h-3 w-3 mr-1 text-gray-400" />
-                    {selectedLead["Phone Number"]}
+                    {selectedLead["Phone Number"] || <span className="text-gray-400 italic">Not captured</span>}
                   </p>
                 </div>
                 <div>
@@ -779,7 +833,7 @@ export const Leads = () => {
                   </label>
                   <p className="text-gray-900 bg-gray-50 p-1.5 break-all rounded-md text-sm flex items-center">
                     <Mail className="h-3 w-3 mr-1 text-gray-400" />
-                    {selectedLead["Email Address"]}
+                    {selectedLead["Email Address"] || <span className="text-gray-400 italic">Not captured</span>}
                   </p>
                 </div>
                 <div>
@@ -788,7 +842,7 @@ export const Leads = () => {
                   </label>
                   <p className="text-gray-900 break-all bg-gray-50 p-1.5 rounded-md text-sm flex items-center">
                     <MapPin className="h-3 w-3 mr-1 text-gray-400" />
-                    {selectedLead["Property Address"]}
+                    {selectedLead["Property Address"] || <span className="text-gray-400 italic">Not captured</span>}
                   </p>
                 </div>
                 <div>
@@ -797,7 +851,7 @@ export const Leads = () => {
                   </label>
                   <p className="text-gray-900 bg-gray-50 p-1.5 rounded-md text-sm flex items-center">
                     <Building className="h-3 w-3 mr-1 text-gray-400" />
-                    {selectedLead["Insurance Company"]}
+                    {selectedLead["Insurance Company"] || <span className="text-gray-400 italic">Not captured</span>}
                   </p>
                 </div>
                 <div>
@@ -806,7 +860,7 @@ export const Leads = () => {
                   </label>
                   <p className="text-gray-900 bg-gray-50 p-1.5 rounded-md text-sm flex items-center">
                     <Hash className="h-3 w-3 mr-1 text-gray-400" />
-                    {selectedLead["Policy Number"]}
+                    {selectedLead["Policy Number"] || <span className="text-gray-400 italic">Not captured</span>}
                   </p>
                 </div>
               </div>

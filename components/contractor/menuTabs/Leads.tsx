@@ -13,6 +13,7 @@ import { supabase } from "@/lib/supabase";
 import { toast } from "react-toastify";
 import { fetchContractorLeads, fetchMatchLeads } from "./Data";
 import { fetchLeadPrice } from "@/lib/leadPrice";
+import { LeadTypeBadge } from "@/components/ui/LeadTypeBadge";
 
 export const Leads = () => {
   const router = useRouter();
@@ -138,7 +139,7 @@ export const Leads = () => {
   const leadFields = selectedLead ? [
     {
       label: "Name",
-      value: `${selectedLead["First Name"]} ${selectedLead["Last Name"]}`,
+      value: selectedLead.lead_type === "address_only" ? "N/A" : `${selectedLead["First Name"]} ${selectedLead["Last Name"]}`,
       icon: User
     },
     {
@@ -148,23 +149,23 @@ export const Leads = () => {
     },
     {
       label: "Phone Number",
-      value: selectedLead["Phone Number"],
+      value: selectedLead.lead_type === "address_only" ? "N/A" : (selectedLead["Phone Number"] || "Not provided"),
       icon: Phone
     },
     {
       label: "Email Address",
-      value: selectedLead["Email Address"],
+      value: selectedLead.lead_type === "address_only" ? "N/A" : (selectedLead["Email Address"] || "Not provided"),
       icon: Mail,
       breakAll: true
     },
     {
       label: "Insurance Company",
-      value: selectedLead["Insurance Company"],
+      value: (selectedLead.lead_type === "address_only" || selectedLead.lead_type === "partial") ? "Not provided" : (selectedLead["Insurance Company"] || "Not provided"),
       icon: Building
     },
     {
       label: "Policy Number",
-      value: selectedLead["Policy Number"],
+      value: (selectedLead.lead_type === "address_only" || selectedLead.lead_type === "partial") ? "Not provided" : (selectedLead["Policy Number"] || "Not provided"),
       icon: Hash
     },
     // {
@@ -190,11 +191,12 @@ export const Leads = () => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          leadAmount: pricePerLead,
+          leadAmount: lead.lead_price || pricePerLead,
           leadName: `${lead["First Name"].slice(0, 2)}${"***"} ${lead["Last Name"].slice(0, 2)}${"***"}`,
           email,
           user_id: userId,
           lead_id: lead.id,
+          lead_type: lead.lead_type,
         }),
       });
   
@@ -304,27 +306,41 @@ export const Leads = () => {
                 {premiumLeads.slice(0, 3).map((lead: premiumLeadType) => (
                   <tr key={lead.id} className={`border-l-4`}>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center space-x-3">
-                        <div className="text-sm font-bold text-gray-400 select-none">
-                          {`${lead["First Name"]?.slice(0, 2) || ""}${"*".repeat(
-                            Math.max((lead["First Name"]?.length || 0) - 2, 0)
-                          )} ${lead["Last Name"]?.slice(0, 2) || ""}${"*".repeat(Math.max((lead["Last Name"]?.length || 0) - 2, 0))}`}
-                        </div>
+                      <div className="flex flex-col gap-1">
+                        {lead.lead_type === "address_only" ? (
+                          <span className="text-sm font-bold text-gray-400 select-none italic">Address Only</span>
+                        ) : (
+                          <div className="text-sm font-bold text-gray-400 select-none">
+                            {`${lead["First Name"]?.slice(0, 2) || ""}${"*".repeat(
+                              Math.max((lead["First Name"]?.length || 0) - 2, 0)
+                            )} ${lead["Last Name"]?.slice(0, 2) || ""}${"*".repeat(Math.max((lead["Last Name"]?.length || 0) - 2, 0))}`}
+                          </div>
+                        )}
+                        <LeadTypeBadge leadType={lead.lead_type} leadPrice={lead.lead_price} size="sm" />
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center">
-                        <Phone className="h-3 w-3 text-gray-400 mr-1" />
-                        <span className="text-sm text-gray-400 select-none">{`${lead["Phone Number"].slice(0, 2)}${"*".repeat(
-                          Math.max(lead["Phone Number"].length - 2, 0)
-                        )}`}</span>
-                      </div>
-                      <div className="flex items-center">
-                        <Mail className="h-3 w-3 text-gray-400 mr-1" />
-                        <span className="text-sm text-gray-400 select-none">{`${lead["Email Address"]?.slice(0, 2) || ""}${"*".repeat(
-                          Math.max((lead["Email Address"]?.length || 0) - 2, 0)
-                        )}`}</span>
-                      </div>
+                      {lead.lead_type === "address_only" ? (
+                        <span className="text-xs text-gray-400 italic">Not captured</span>
+                      ) : (
+                        <>
+                          <div className="flex items-center">
+                            <Phone className="h-3 w-3 text-gray-400 mr-1" />
+                            <span className="text-sm text-gray-400 select-none">{`${(lead["Phone Number"] || "").slice(0, 2)}${"*".repeat(
+                              Math.max(((lead["Phone Number"] || "").length) - 2, 0)
+                            )}`}</span>
+                          </div>
+                          <div className="flex items-center">
+                            <Mail className="h-3 w-3 text-gray-400 mr-1" />
+                            <span className="text-sm text-gray-400 select-none">{`${lead["Email Address"]?.slice(0, 2) || ""}${"*".repeat(
+                              Math.max((lead["Email Address"]?.length || 0) - 2, 0)
+                            )}`}</span>
+                          </div>
+                          {lead.lead_type === "partial" && (
+                            <div className="text-xs text-amber-600 mt-0.5">No Insurance</div>
+                          )}
+                        </>
+                      )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center w-52">
@@ -349,7 +365,7 @@ export const Leads = () => {
                           ) : (
                             <>
                               <ShoppingCart className="h-4 w-4 mr-2" />
-                              Buy Now
+                              Buy Now — ${lead.lead_price || pricePerLead}
                             </>
                           )}
                         </Button>
@@ -371,21 +387,32 @@ export const Leads = () => {
                   currentData.map((lead: purchasedLeadType, index: number) => (
                     <tr key={index} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div>
-                          <div className="text-sm font-bold text-[#122E5F]">
-                            {lead["First Name"]} {lead["Last Name"]}
-                          </div>
+                        <div className="flex flex-col gap-1">
+                          {lead.lead_type === "address_only" ? (
+                            <span className="text-sm font-bold text-gray-500 italic">N/A</span>
+                          ) : (
+                            <div className="text-sm font-bold text-[#122E5F]">
+                              {lead["First Name"]} {lead["Last Name"]}
+                            </div>
+                          )}
+                          <LeadTypeBadge leadType={lead.lead_type} leadPrice={lead.lead_price} size="sm" />
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="space-y-1 flex items-center text-sm font-medium text-gray-600">
-                          <Phone className="h-3 w-3 text-gray-400 mr-1" />
-                          {lead["Phone Number"]}
-                        </div>
-                        <div className="space-y-1 flex items-center text-sm font-medium text-gray-600">
-                          <Mail className="h-3 w-3 text-gray-400 mr-1" />
-                          {lead["Email Address"]}
-                        </div>
+                        {lead.lead_type === "address_only" ? (
+                          <span className="text-xs text-gray-400 italic">N/A</span>
+                        ) : (
+                          <>
+                            <div className="space-y-1 flex items-center text-sm font-medium text-gray-600">
+                              <Phone className="h-3 w-3 text-gray-400 mr-1" />
+                              {lead["Phone Number"] || <span className="text-gray-400 italic">Not provided</span>}
+                            </div>
+                            <div className="space-y-1 flex items-center text-sm font-medium text-gray-600">
+                              <Mail className="h-3 w-3 text-gray-400 mr-1" />
+                              {lead["Email Address"] || <span className="text-gray-400 italic">Not provided</span>}
+                            </div>
+                          </>
+                        )}
                       </td>
                       <td className="px-6 py-4 whitespace-nowra">
                         <div className="flex items-center text-sm w-52 font-medium text-gray-600">
