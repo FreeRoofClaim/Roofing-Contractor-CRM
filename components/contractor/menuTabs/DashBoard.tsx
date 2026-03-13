@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useRef } from "react";
-import { Home, FileText, DollarSign, BarChart3, Users, User, CheckCircle, Phone, Mail, MapPin, Hash, Building, Search, Plus } from "lucide-react";
+import { Home, FileText, DollarSign, BarChart3, Users, User, CheckCircle, Phone, Mail, MapPin, Hash, Building, Search, Plus, Calendar, X } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { DetailPopup } from "@/components/ui/DetailPopup";
@@ -25,6 +25,8 @@ export const DashBoard = () => {
   const [contractorLeads, setContractorLeads] = useState<any[]>([]);
   const [premiumLeads, setPremiumLeads] = useState<any[]>([]);
   const [pricePerLead, setPricePerLead] = useState<number>(0);
+  const [calendlyConnected, setCalendlyConnected] = useState<boolean | null>(null);
+  const [calendlyDismissed, setCalendlyDismissed] = useState(false);
   const hasRun = useRef(false);
   const router = useRouter();
   const handleCloseModal = () => {
@@ -40,6 +42,22 @@ export const DashBoard = () => {
       }
     };
     fetchLeadPriceData();
+  }, []);
+
+  useEffect(() => {
+    const checkCalendlyStatus = async () => {
+      try {
+        const { data: authData } = await supabase.auth.getUser();
+        const userId = authData?.user?.id;
+        if (!userId) return;
+        const res = await fetch(`/api/calendly/status?contractorId=${userId}`);
+        const { connected } = await res.json();
+        setCalendlyConnected(connected);
+      } catch {
+        setCalendlyConnected(false);
+      }
+    };
+    checkCalendlyStatus();
   }, []);
 
   const leadFields = selectedLead
@@ -165,6 +183,16 @@ export const DashBoard = () => {
     verifyAndAssignLeads();
   }, []);
 
+  const handleConnectCalendly = async () => {
+    const { data: authData } = await supabase.auth.getUser();
+    const userId = authData?.user?.id;
+    if (!userId) {
+      toast.error("User not logged in");
+      return;
+    }
+    window.location.href = `/api/calendly/connect?contractorId=${userId}&after=dashboard`;
+  };
+
   const handleLeadClick = (lead: any) => {
     console.log("lead==", lead);
     setSelectedLead(lead);
@@ -194,6 +222,44 @@ export const DashBoard = () => {
         <div className="absolute top-4 right-4 w-32 h-32 bg-white/5 rounded-full"></div>
         <div className="absolute bottom-4 right-8 w-20 h-20 bg-white/5 rounded-full"></div>
       </div>
+
+      {/* Calendly Connection Banner */}
+      {calendlyConnected === false && !calendlyDismissed && (
+        <div className="mb-6 relative overflow-hidden bg-gradient-to-r from-[#122E5F] to-[#286BBD] rounded-xl p-5 shadow-lg">
+          <button
+            onClick={() => setCalendlyDismissed(true)}
+            className="absolute top-3 right-3 text-white/70 hover:text-white transition-colors"
+            aria-label="Dismiss"
+          >
+            <X className="h-5 w-5" />
+          </button>
+          <div className="flex flex-col sm:flex-row items-center gap-4">
+            <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm shrink-0">
+              <Calendar className="h-6 w-6 text-white" />
+            </div>
+            <div className="flex-1 text-center sm:text-left">
+              <h3 className="text-lg font-bold text-white">Connect Your Calendly</h3>
+              <p className="text-blue-100 text-sm mt-1">
+                Link your Calendly account so we can schedule appointments with your leads directly on your calendar.
+              </p>
+            </div>
+            <Button
+              onClick={handleConnectCalendly}
+              className="bg-white text-[#122E5F] hover:bg-blue-50 font-semibold shrink-0"
+            >
+              <Calendar className="h-4 w-4 mr-2" />
+              Connect Calendly
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {calendlyConnected === true && (
+        <div className="mb-6 flex items-center gap-2 px-4 py-2 bg-green-50 border border-green-200 rounded-lg w-fit">
+          <CheckCircle className="h-4 w-4 text-green-600" />
+          <span className="text-sm font-medium text-green-700">Calendly Connected</span>
+        </div>
+      )}
 
       {/* Stats cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">

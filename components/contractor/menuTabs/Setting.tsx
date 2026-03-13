@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { User, CreditCard, Edit3, Save, X, Trash } from "lucide-react";
+import { User, CreditCard, Edit3, Save, X, Trash, Calendar, CheckCircle, RefreshCw } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger, } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -22,6 +22,7 @@ export const Setting = () => {
   const [cards, setCards] = useState<paymentMethodType[]>([]);
   const [isPaymentLoading, setIsPaymentLoading] = useState<boolean>(false);
   const [isProfileLoading, setIsProfileLoading] = useState<boolean>(false);
+  const [calendlyConnected, setCalendlyConnected] = useState<boolean | null>(null);
   const [formData, setFormData] = useState<settingType>({
     fullName: "",
     email: "",
@@ -74,6 +75,32 @@ export const Setting = () => {
 
     fetchUserData();
   }, []);
+
+  useEffect(() => {
+    const checkCalendlyStatus = async () => {
+      try {
+        const { data: authData } = await supabase.auth.getUser();
+        const userId = authData?.user?.id;
+        if (!userId) return;
+        const res = await fetch(`/api/calendly/status?contractorId=${userId}`);
+        const { connected } = await res.json();
+        setCalendlyConnected(connected);
+      } catch {
+        setCalendlyConnected(false);
+      }
+    };
+    checkCalendlyStatus();
+  }, []);
+
+  const handleConnectCalendly = async () => {
+    const { data: authData } = await supabase.auth.getUser();
+    const userId = authData?.user?.id;
+    if (!userId) {
+      toast.error("User not logged in");
+      return;
+    }
+    window.location.href = `/api/calendly/connect?contractorId=${userId}&after=settings`;
+  };
 
   const handleEdit = () => {
     setIsEditing(true);
@@ -170,7 +197,7 @@ export const Setting = () => {
 
   return (
     <div className="space-y-8">
-      <div className="flex flex-col md:flex-row items-center justify-center gap-8 min-h-[80vh] max-w-7xl mx-auto">
+      <div className="flex flex-col md:flex-row items-start justify-center gap-8 min-h-[80vh] max-w-7xl mx-auto">
         <Card className="border-0 shadow-lg w-full md:w-1/2">
           <CardHeader className="bg-gradient-to-r from-[#286BBD]/5 to-[#2563eb]/5">
             <CardTitle className="flex items-center text-[#286BBD] text-xl">
@@ -296,6 +323,61 @@ export const Setting = () => {
                   {isProfileLoading ? "Updating..." : "Update Profile"}
                 </Button>
               </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Calendly Integration Card */}
+        <Card className="border-0 shadow-lg w-full md:w-1/2">
+          <CardHeader className="bg-gradient-to-r from-[#286BBD]/5 to-[#2563eb]/5">
+            <CardTitle className="flex items-center text-[#286BBD] text-xl">
+              <Calendar className="h-5 w-5 mr-2" />
+              Calendly Integration
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-6">
+            <div className="text-center mb-6">
+              <div className="w-20 h-20 bg-[#122E5F] rounded-full flex items-center justify-center mx-auto mb-3">
+                <Calendar className="h-10 w-10 text-white" />
+              </div>
+              {calendlyConnected === null ? (
+                <LoadingDots />
+              ) : calendlyConnected ? (
+                <>
+                  <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-green-50 border border-green-200 rounded-full mb-3">
+                    <CheckCircle className="h-4 w-4 text-green-600" />
+                    <span className="text-sm font-semibold text-green-700">Connected</span>
+                  </div>
+                  <p className="text-sm text-gray-600">
+                    Your Calendly account is linked. Leads can be scheduled directly on your calendar.
+                  </p>
+                </>
+              ) : (
+                <>
+                  <h3 className="font-semibold text-gray-900">Not Connected</h3>
+                  <p className="text-sm text-gray-600 mt-1">
+                    Connect your Calendly account to allow automatic appointment scheduling with your leads.
+                  </p>
+                </>
+              )}
+            </div>
+            {calendlyConnected === null ? null : calendlyConnected ? (
+              <Button
+                onClick={handleConnectCalendly}
+                variant="outline"
+                className="w-full h-11 border-[#122E5F] text-[#122E5F] hover:bg-[#122E5F] hover:text-white font-semibold"
+              >
+                <RefreshCw className="h-4 w-4 mr-2" />
+                Reconnect Calendly
+              </Button>
+            ) : (
+              <Button
+                onClick={handleConnectCalendly}
+                className="w-full h-11 bg-[#122E5F] hover:bg-[#0f2347] font-semibold"
+              >
+                <Calendar className="h-4 w-4 mr-2" />
+                Connect Calendly
+              </Button>
             )}
           </CardContent>
         </Card>
