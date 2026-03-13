@@ -69,6 +69,18 @@ export async function GET(req: Request) {
       );
     }
 
+    if (after === "dashboard") {
+      return NextResponse.redirect(
+        new URL("/contractor/dashboard", req.url)
+      );
+    }
+
+    if (after === "settings") {
+      return NextResponse.redirect(
+        new URL("/contractor/settings", req.url)
+      );
+    }
+
     // default / settings flow
     return NextResponse.redirect(
       new URL("/contractor/appointment-info", req.url)
